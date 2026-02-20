@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Loader2, Store, Tag, Image as ImageIcon, Link as LinkIcon, Ticket } from 'lucide-react';
+import { X, Sparkles, Loader2, Store, Tag, Image as ImageIcon, Link as LinkIcon, Ticket, CreditCard } from 'lucide-react';
 import { analyzeDeal } from '../services/geminiService';
-import { Deal, DEAL_CATEGORIES } from '../types';
+import { Deal, DEAL_CATEGORIES, PAYMENT_METHODS } from '../types';
 
 interface CreateDealModalProps {
   isOpen: boolean;
@@ -23,7 +23,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
     imageUrl: '',
     description: '',
     category: 'Outros',
-    couponCode: ''
+    couponCode: '',
+    paymentMethod: 'À vista'
   });
 
   if (!isOpen) return null;
@@ -43,7 +44,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
     setLoadingAI(false);
 
     if (result) {
-        // Verifica se a categoria retornada existe na lista, se não, usa 'Outros'
         const matchedCategory = DEAL_CATEGORIES.find(c => c.toLowerCase() === result.category.toLowerCase()) || 'Outros';
         
       setFormData(prev => ({
@@ -69,12 +69,11 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
           storeName: formData.storeName,
           link: formData.link,
           category: formData.category || 'Outros',
-          couponCode: formData.couponCode || undefined
+          couponCode: formData.couponCode || undefined,
+          paymentMethod: formData.paymentMethod
         });
         
-        // Se chegou aqui, deu sucesso
         onClose();
-        // Reset form
         setFormData({
           title: '',
           price: '',
@@ -84,7 +83,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
           imageUrl: '',
           description: '',
           category: 'Outros',
-          couponCode: ''
+          couponCode: '',
+          paymentMethod: 'À vista'
         });
 
     } catch (error: any) {
@@ -121,7 +121,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
 
           <div className="flex flex-col md:flex-row gap-6">
             
-            {/* Left Column: Form Fields */}
             <div className="flex-1 space-y-6">
               {/* Link Section */}
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
@@ -198,8 +197,25 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
                     />
                   </div>
                 </div>
-                <div className="col-span-2 md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cupom</label>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pagamento</label>
+                    <div className="relative">
+                        <CreditCard className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                        <select
+                            value={formData.paymentMethod}
+                            onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white"
+                        >
+                            {PAYMENT_METHODS.map(method => (
+                                <option key={method} value={method}>{method}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+              </div>
+                
+              <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cupom (Opcional)</label>
                   <div className="relative">
                     <Ticket className="absolute left-3 top-2.5 text-gray-400" size={18} />
                     <input 
@@ -207,11 +223,11 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
                       value={formData.couponCode}
                       onChange={e => setFormData({...formData, couponCode: e.target.value})}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-mono uppercase text-sm"
-                      placeholder="CUPOM"
+                      placeholder="Ex: PROMO10"
                     />
                   </div>
-                </div>
               </div>
+
             </div>
 
             {/* Right Column: Image & Desc */}
@@ -231,9 +247,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({ isOpen, onClos
                     value={formData.imageUrl}
                     onChange={e => setFormData({...formData, imageUrl: e.target.value})}
                     className="absolute inset-0 opacity-0 cursor-pointer"
-                    placeholder="Cole a URL aqui" // Input invisível mas clicável para colar
                   />
-                  {/* Visual input for URL */}
                    <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur shadow-sm rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                      <input 
                        type="url" 

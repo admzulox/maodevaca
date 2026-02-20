@@ -1,13 +1,15 @@
 import React from 'react';
-import { DEAL_CATEGORIES } from '../types';
-import { Smartphone, Laptop, Shirt, Home, Gamepad, ShoppingBag, Gift, TrendingUp, Tag, Wrench, Dumbbell, BookOpen, Sparkles } from 'lucide-react';
+import { DEAL_CATEGORIES, PAYMENT_METHODS } from '../types';
+import { Smartphone, Laptop, Shirt, Home, Gamepad, ShoppingBag, Gift, TrendingUp, Tag, Wrench, Dumbbell, BookOpen, Sparkles, CreditCard, Wallet, Zap } from 'lucide-react';
 
 interface SidebarProps {
   onCategorySelect?: (category: string) => void;
   selectedCategory?: string;
+  onPaymentSelect?: (method: string) => void;
+  selectedPayment?: string;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onCategorySelect, selectedCategory }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onCategorySelect, selectedCategory, onPaymentSelect, selectedPayment }) => {
   
   // Mapeamento de ícones para as categorias definidas em types.ts
   const getIcon = (category: string) => {
@@ -26,6 +28,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCategorySelect, selectedCate
       default: return <Tag size={18} />;
     }
   };
+
+  const getPaymentIcon = (method: string) => {
+    switch(method) {
+        case 'No PIX': return <Zap size={16} className="text-green-600"/>;
+        case 'Parcelado': return <CreditCard size={16} className="text-blue-600"/>;
+        default: return <Wallet size={16} className="text-gray-600"/>;
+    }
+  }
 
   const stores = ['Amazon', 'Mercado Livre', 'AliExpress', 'Shopee', 'Magalu', 'KaBuM!'];
 
@@ -64,6 +74,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCategorySelect, selectedCate
             </button>
           </li>
         </ul>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+         <h3 className="font-extrabold text-gray-900 mb-4 px-1 text-sm uppercase tracking-wide flex items-center gap-2">
+            <CreditCard size={16} className="text-brand-500" />
+            Pagamento
+         </h3>
+         <ul className="space-y-1">
+             {PAYMENT_METHODS.map((method) => (
+                <li key={method}>
+                    <button
+                        onClick={() => onPaymentSelect && onPaymentSelect(method === selectedPayment ? '' : method)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors text-sm font-medium text-left ${
+                            selectedPayment === method 
+                                ? 'bg-gray-100 text-gray-900 font-bold' 
+                                : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            {getPaymentIcon(method)}
+                            {method}
+                        </div>
+                        {selectedPayment === method && <div className="w-2 h-2 rounded-full bg-brand-500"></div>}
+                    </button>
+                </li>
+             ))}
+         </ul>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
