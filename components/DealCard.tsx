@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Deal } from '../types';
-import { Flame, ExternalLink, ThumbsUp, MessageCircle, Copy, Check, TrendingDown, Flag, AlertTriangle, MoreVertical, CreditCard, Zap, Wallet } from 'lucide-react';
+import { Flame, ExternalLink, ThumbsUp, MessageCircle, Copy, Check, TrendingDown, Flag, AlertTriangle } from 'lucide-react';
 import { upvoteDeal, reportDealExpired } from '../services/dealService';
 import { supabase } from '../lib/supabase';
 import { getCurrentProfile } from '../services/authService';
@@ -14,21 +14,9 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
   const [temperature, setTemperature] = useState(deal.temperature);
   const [hasVoted, setHasVoted] = useState(false);
   const [isAnimatingVote, setIsAnimatingVote] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   
   // Estado local para controle imediato do reporte
   const [isReported, setIsReported] = useState(deal.reportStatus === 'pending_review');
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleCopy = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -100,7 +88,6 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
         }
       }
     }
-    setIsMenuOpen(false);
   };
 
   const affiliateLink = `${deal.link}${deal.link.includes('?') ? '&' : '?'}ref=maodevaca_app`;
@@ -109,39 +96,23 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
     ? Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100) 
     : 0;
 
-  const getPaymentIcon = () => {
-    switch (deal.paymentMethod) {
-        case 'No PIX': return <Zap size={14} className="text-green-600" />;
-        case 'Parcelado': return <CreditCard size={14} className="text-blue-600" />;
-        default: return <Wallet size={14} className="text-gray-500" />; // À vista
-    }
-  };
-
-  const getPaymentColor = () => {
-    switch (deal.paymentMethod) {
-        case 'No PIX': return 'text-green-600';
-        case 'Parcelado': return 'text-blue-600';
-        default: return 'text-money-600';
-    }
-  };
-
   return (
-    <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 transition-all duration-300 overflow-visible flex flex-col h-full transform hover:-translate-y-1 group z-10">
+    <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">
       {/* Image Area */}
-      <div className="relative h-56 w-full p-6 flex items-center justify-center bg-white border-b border-gray-50 overflow-hidden rounded-t-2xl">
+      <div className="relative h-56 w-full p-6 flex items-center justify-center bg-white border-b border-gray-50">
         <img 
           src={deal.imageUrl} 
           alt={deal.title} 
-          className="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+          className="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105"
         />
         {(deal.isHot || temperature > 50) && (
-          <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wide animate-pulse z-10">
+          <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wide animate-pulse">
             <Flame size={12} fill="currentColor" />
             Pegando Fogo
           </div>
         )}
         {discountPercentage > 15 && (
-          <div className="absolute bottom-3 right-3 bg-money-100 text-money-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-money-200 flex items-center gap-1 shadow-sm z-10">
+          <div className="absolute bottom-3 right-3 bg-money-100 text-money-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-money-200 flex items-center gap-1">
             <TrendingDown size={14} />
             {discountPercentage}% OFF
           </div>
@@ -149,117 +120,108 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
       </div>
 
       {/* Content Area */}
-      <div className="p-5 flex flex-col flex-grow relative">
+      <div className="p-5 flex flex-col flex-grow">
         <div className="flex items-center justify-between mb-2">
-           <div className="flex gap-2 items-center">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                    {deal.category}
-                </span>
-                <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-100 truncate max-w-[120px]">
-                    {deal.storeName}
-                </span>
-           </div>
-           
-           {/* Context Menu (Report) */}
-           <div className="relative" ref={menuRef}>
-             <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-             >
-                <MoreVertical size={16} />
-             </button>
-             {isMenuOpen && (
-                <div className="absolute right-0 top-6 w-32 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20 animate-in fade-in zoom-in-95 duration-100">
-                    <button 
-                        onClick={handleReport}
-                        disabled={isReported}
-                        className={`w-full text-left px-3 py-2 text-xs font-medium flex items-center gap-2 hover:bg-red-50 ${isReported ? 'text-gray-400 cursor-not-allowed' : 'text-red-600'}`}
-                    >
-                        <Flag size={14} />
-                        {isReported ? 'Reportado' : 'Reportar'}
-                    </button>
-                </div>
-             )}
-           </div>
+           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+             {deal.category}
+           </span>
+           <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-100">
+             {deal.storeName}
+           </span>
         </div>
 
-        <h3 className="font-bold text-gray-800 text-lg leading-snug mb-3 line-clamp-2 hover:text-brand-600 transition-colors h-[3.2rem]">
+        <h3 className="font-bold text-gray-800 text-lg leading-snug mb-3 line-clamp-2 hover:text-brand-600 transition-colors">
           <a href={affiliateLink} target="_blank" rel="noopener noreferrer">{deal.title}</a>
         </h3>
 
-        <div className="flex flex-col mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
-            {deal.originalPrice && (
-            <span className="text-xs text-gray-400 line-through mb-0.5">
-                De: R$ {deal.originalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
-            )}
-            <div className="flex items-baseline gap-1">
-            <span className="text-sm font-medium text-gray-500">Por:</span>
-            <span className="text-2xl font-extrabold text-money-600 tracking-tight">
-                R$ {deal.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
-            </div>
-            <div className={`text-xs font-bold mt-1 flex items-center gap-1.5 ${getPaymentColor()}`}>
-               {getPaymentIcon()}
-               {deal.paymentMethod || 'À vista ou no PIX'}
-            </div>
-        </div>
+        <div className="mt-auto">
+          <div className="flex flex-col mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+             {deal.originalPrice && (
+               <span className="text-xs text-gray-400 line-through mb-0.5">
+                 De: R$ {deal.originalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+               </span>
+             )}
+             <div className="flex items-baseline gap-1">
+               <span className="text-sm font-medium text-gray-500">Por:</span>
+               <span className="text-2xl font-extrabold text-money-600">
+                 R$ {deal.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+               </span>
+             </div>
+             <p className="text-xs text-money-600 font-medium mt-1">
+               À vista ou no PIX
+             </p>
+          </div>
 
-        <p className="text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed flex-grow">
-        {deal.description}
-        </p>
+          <p className="text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">
+            {deal.description}
+          </p>
 
-        {deal.couponCode && (
-        <div 
-            onClick={handleCopy}
-            className="mb-4 group/coupon relative overflow-hidden bg-gradient-to-r from-accent-500 to-yellow-500 rounded-lg p-[1px] cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-            title="Clique para copiar"
-        >
-            <div className="bg-white rounded-[7px] p-2 flex items-center justify-between hover:bg-yellow-50 transition-colors">
-            <div className="flex items-center gap-2 overflow-hidden">
-                <div className="bg-yellow-100 p-1 rounded shrink-0">
-                    <Check size={14} className={`text-yellow-700 transition-all absolute ${copied ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} />
-                    <Copy size={14} className={`text-yellow-700 transition-all ${copied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`} />
-                </div>
-                <span className="text-xs font-mono font-bold text-gray-700 uppercase tracking-wide truncate">
-                    {deal.couponCode}
-                </span>
-            </div>
-            <span className="text-[10px] font-bold text-yellow-600 uppercase pr-1 whitespace-nowrap ml-2">
-                {copied ? 'Copiado!' : 'Copiar'}
-            </span>
-            </div>
-        </div>
-        )}
-
-        {/* Footer Actions */}
-        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
-            
-            <button 
-                onClick={handleVote}
-                className={`flex items-center gap-1.5 transition-all group/vote px-3 py-2 rounded-lg hover:bg-gray-100 border border-transparent hover:border-gray-200 ${
-                    hasVoted ? 'text-brand-600 bg-brand-50 border-brand-100' : 'text-gray-400'
-                }`}
-                title="Esquentar oferta"
+          {deal.couponCode && (
+            <div 
+              onClick={handleCopy}
+              className="mb-4 group/coupon relative overflow-hidden bg-gradient-to-r from-accent-500 to-yellow-500 rounded-lg p-[1px] cursor-pointer"
             >
+              <div className="bg-white rounded-[7px] p-2 flex items-center justify-between hover:bg-yellow-50 transition-colors">
+                <div className="flex items-center gap-2">
+                    <div className="bg-yellow-100 p-1 rounded">
+                        <Check size={14} className={`text-yellow-700 transition-all ${copied ? 'scale-100' : 'scale-0 hidden'}`} />
+                        <Copy size={14} className={`text-yellow-700 transition-all ${copied ? 'scale-0 hidden' : 'scale-100'}`} />
+                    </div>
+                    <span className="text-xs font-mono font-bold text-gray-700 uppercase tracking-wide">
+                        {deal.couponCode}
+                    </span>
+                </div>
+                <span className="text-[10px] font-bold text-yellow-600 uppercase pr-1">
+                    {copied ? 'Copiado!' : 'Copiar Cupom'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-gray-400">
+              <button 
+                onClick={handleVote}
+                className={`flex items-center gap-1.5 transition-all group/vote px-2 py-1 rounded-md hover:bg-gray-50 ${
+                  hasVoted ? 'text-brand-600' : 'hover:text-brand-600 cursor-pointer'
+                }`}
+              >
                 <ThumbsUp 
-                    size={20} 
-                    className={`transition-transform duration-300 ${
+                  size={18} 
+                  className={`transition-transform duration-300 ${
                     hasVoted ? 'fill-current' : 'group-hover/vote:scale-110'
-                    } ${isAnimatingVote ? 'scale-125' : ''}`} 
+                  } ${isAnimatingVote ? 'scale-125' : ''}`} 
                 />
-                <span className="text-sm font-bold">{temperature}°</span>
-            </button>
+                <span className="text-sm font-semibold">{temperature}°</span>
+              </button>
+            </div>
             
-            <a 
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={handleReport}
+                    disabled={isReported}
+                    title={isReported ? "Já reportado" : "Reportar problema"}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                        isReported 
+                        ? 'bg-red-50 text-red-500 border-red-100 cursor-not-allowed' 
+                        : 'bg-white text-gray-400 border-gray-200 hover:text-red-500 hover:border-red-200 hover:bg-red-50'
+                    }`}
+                >
+                    <Flag size={14} fill={isReported ? "currentColor" : "none"} />
+                    <span className="hidden sm:inline">{isReported ? 'Análise' : 'Reportar'}</span>
+                </button>
+
+                <a 
                 href={affiliateLink} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg shadow-brand-200 whitespace-nowrap hover:-translate-y-0.5 active:translate-y-0"
-            >
-                Pegar Oferta
+                className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg shadow-brand-200"
+                >
+                Pegar
                 <ExternalLink size={16} />
-            </a>
+                </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

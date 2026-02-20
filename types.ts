@@ -15,8 +15,7 @@ export interface Deal {
   status: 'pending' | 'approved' | 'rejected';
   reportStatus?: 'pending_review' | null;
   user_id?: string;
-  userEmail?: string;
-  paymentMethod?: string; // Novo campo
+  userEmail?: string; // Novo campo para exibir no admin
 }
 
 export interface UserProfile {
@@ -44,10 +43,4 @@ export const DEAL_CATEGORIES = [
   'Beleza',
   'Esporte',
   'Outros'
-];
-
-export const PAYMENT_METHODS = [
-  'À vista',
-  'No PIX',
-  'Parcelado'
 ];

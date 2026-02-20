@@ -133,8 +133,7 @@ export const updateDeal = async (deal: Deal): Promise<boolean> => {
       link: deal.link,
       category: deal.category,
       coupon_code: deal.couponCode,
-      status: deal.status,
-      payment_method: deal.paymentMethod
+      status: deal.status
     })
     .eq('id', deal.id);
   
@@ -188,7 +187,6 @@ export const createDeal = async (deal: Omit<Deal, 'id' | 'createdAt' | 'temperat
     link: optimizedLink,
     category: deal.category,
     coupon_code: deal.couponCode,
-    payment_method: deal.paymentMethod || 'À vista', // Default
     temperature: 0,
     is_hot: false,
     status: 'pending', // Padrão
@@ -259,7 +257,6 @@ const mapDeals = (data: any[]): Deal[] => {
     status: item.status,
     reportStatus: item.report_status,
     user_id: item.user_id,
-    userEmail: item.profiles?.email,
-    paymentMethod: item.payment_method || 'À vista' // Default visual
+    userEmail: item.profiles?.email // Mapeia o email vindo do join com profiles
   }));
 };
