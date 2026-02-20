@@ -97,7 +97,7 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
     : 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col min-h-full transform hover:-translate-y-1">
+    <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col transform hover:-translate-y-1">
       {/* Image Area */}
       <div className="relative h-56 w-full p-6 flex items-center justify-center bg-white border-b border-gray-50">
         <img 
